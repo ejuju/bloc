@@ -4,31 +4,26 @@ import (
 	"image"
 	"image/png"
 	"os"
+	"strings"
 
 	"github.com/ejuju/bloc/pkg/bloc"
 )
 
 func main() {
-	var lines []string
+	txt := ""
 	if len(os.Args) >= 2 {
-		lines = []string{os.Args[1]}
+		txt = strings.Join(os.Args[1:], "\n")
 	} else {
-		lines = []string{
-			"Pack my box with five dozen liquor jugs.",
-			"Waltz, bad nymph, for quick jigs vex.",
-			"0123456789",
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-			"abcdefghijklmnopqrstuvwxyz",
-			"!\"#$%&'()*+,-./",
-			":;<=>?@",
-			"[\\]^_`",
-			"{|}~",
-		}
-	}
-
-	maxLineNumChars := 0
-	for _, line := range lines {
-		maxLineNumChars = max(maxLineNumChars, len(line))
+		txt = "" +
+			"Pack my box with five dozen liquor jugs.\n" +
+			"Waltz, bad nymph, for quick jigs vex.\n" +
+			"0123456789\n" +
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n" +
+			"abcdefghijklmnopqrstuvwxyz\n" +
+			"!\"#$%&'()*+,-./\n" +
+			":;<=>?@\n" +
+			"[\\]^_`\n" +
+			"{|}~"
 	}
 
 	f, err := os.OpenFile("tmp/bloc.png", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
@@ -36,22 +31,11 @@ func main() {
 		panic(err)
 	}
 	defer f.Close()
-	img := image.NewGray(image.Rect(0, 0, (bloc.Width+2)*maxLineNumChars, (bloc.Height+2)*len(lines)))
-	for y, line := range lines {
-		for x, c := range line {
-			copyImg(bloc.CharFromRune(c).Image(), img, x*(bloc.Width+2), y*(bloc.Height+2))
-		}
-	}
+
+	img := bloc.Image(txt, image.White, image.Black)
+
 	err = png.Encode(f, img)
 	if err != nil {
 		panic(err)
-	}
-}
-
-func copyImg(src, dst *image.Gray, offsetX, offsetY int) {
-	for y := range bloc.Height {
-		for x := range bloc.Width {
-			dst.SetGray(offsetX+x, offsetY+y, src.GrayAt(x, y))
-		}
 	}
 }

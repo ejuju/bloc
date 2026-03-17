@@ -3,7 +3,6 @@ package bloc
 import (
 	"image"
 	"image/color"
-	"math"
 )
 
 const Width = 7
@@ -149,21 +148,21 @@ var ASCIIChars = [128]Char{
 	127:  CharUnknown,     // Blank (non-graphic character).
 }
 
-func (c Char) Image() *image.Gray {
-	img := image.NewGray(image.Rect(0, 0, Width, Height))
+func (c Char) Image(fg, bg color.Color) *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, Width, Height))
 	for y, row := range c {
-		for x, cell := range uint7Cells(row) {
-			clr := uint8(0)
-			if cell {
-				clr = math.MaxUint8
+		for x, isForeground := range uint7Row(row) {
+			if isForeground {
+				img.Set(x, y, fg)
+			} else {
+				img.Set(x, y, bg)
 			}
-			img.SetGray(x, y, color.Gray{clr})
 		}
 	}
 	return img
 }
 
-func uint7Cells(v uint8) [Width]bool {
+func uint7Row(v uint8) [Width]bool {
 	return [...]bool{
 		v>>6&0b1 > 0,
 		v>>5&0b1 > 0,
